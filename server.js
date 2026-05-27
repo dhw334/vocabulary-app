@@ -3,10 +3,23 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 
 const app = express();
+
+// CORS 支持
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
+
 app.use(express.json());
 app.use(express.static('public'));
 
-const db = new sqlite3.Database('database.db');
+const db = new sqlite3.Database('./database.db');
 
 // 创建所有表
 db.serialize(() => {
@@ -294,7 +307,8 @@ app.post('/api/admin/public-wordbook', (req, res) => {
 
 app.delete('/api/admin/public-wordbook/:id', (req, res) => {
     db.run('DELETE FROM public_wordbooks WHERE id = ?', [req.params.id], function(err) {
-        res.json({ success: !err });
+        if(err) return res.json({ success: false });
+        res.json({ success: true });
     });
 });
 
@@ -314,8 +328,9 @@ app.post('/api/import-public-wordbook', (req, res) => {
     });
 });
 
-app.listen(3000, () => {
-    console.log('服务器已启动！');
-    console.log('访问地址: http://localhost:3000');
+// 启动服务器
+const port = process.env.PORT || 3000;
+app.listen(port, '0.0.0.0', () => {
+    console.log(`服务器已启动！端口: ${port}`);
     console.log('管理员: admin / admin123');
 });
