@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="header">
-        <h2>👤 <span id="username"></span>'s 单词本</h2>
+        <h2>👤 <span id="username"></span></h2>
         <button onclick="logout()" class="logout">退出</button>
     </div>
 
@@ -17,118 +17,141 @@
         <p id="announcementText"></p >
     </div>
 
-    <div class="stats-bar">
-        <div class="stat">📚 总单词 <span id="totalWords">0</span></div>
-        <div class="stat">✅ 今日 <span id="todayLearned">0</span></div>
-        <div class="stat">⭐ 掌握 <span id="masteredWords">0</span></div>
-        <div class="stat">🔥 连续 <span id="streakDays">0</span>天</div>
-    </div>
-
-    <div class="checkin-area">
-        <button id="checkinBtn" onclick="checkin()">📅 今日打卡</button>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('study', this)">📱 背单词</button>
-        <button class="tab-btn" onclick="showTab('words', this)">📚 我的词库</button>
-        <button class="tab-btn" onclick="showTab('add', this)">➕ 添加单词</button>
-        <button class="tab-btn" onclick="showTab('settings', this)">⚙️ 个人设置</button>
-    </div>
-
-    <div id="studyTab" class="tab-content">
-        <div class="settings-bar">
-            <select id="bookSelect" onchange="switchBook()"></select>
-            <select id="orderMode">
-                <option value="sequential">顺序</option>
-                <option value="random">乱序</option>
-            </select>
-            <select id="dailyLimit">
-                <option value="0">无限制</option>
-                <option value="5">每天5个</option>
-                <option value="10">每天10个</option>
-                <option value="20">每天20个</option>
-                <option value="30">每天30个</option>
-                <option value="50">每天50个</option>
-                <option value="100">每天100个</option>
-                <option value="150">每天150个</option>
-                <option value="200">每天200个</option>
-            </select>
-            <button onclick="resetStudyQueue()">🔄 重置</button>
+    <!-- 普通用户界面 -->
+    <div id="userPanel">
+        <div class="stats-bar">
+            <div class="stat">📚 总单词 <span id="totalWords">0</span></div>
+            <div class="stat">✅ 今日 <span id="todayLearned">0</span></div>
+            <div class="stat">⭐ 掌握 <span id="masteredWords">0</span></div>
+            <div class="stat">🔥 连续 <span id="streakDays">0</span>天</div>
         </div>
-        
-        <div class="card-container">
-            <div id="studyCard" class="study-card">
-                <div id="cardFront">
-                    <h2 id="currentWord">加载中...</h2>
-                    <button class="speak-btn" onclick="speakWord()">🔊 发音</button>
-                    <p class="hint">👈 左滑没记住 | 右滑记住了 👉</p >
-                </div>
-                <div id="cardBack" style="display:none">
-                    <h2 id="wordMeaning"></h2>
-                    <p id="wordExample"></p >
-                    <div id="spellArea" style="display:none">
-                        <input type="text" id="spellInput" placeholder="拼写这个单词" onkeypress="if(event.key==='Enter') checkSpell()">
-                        <button onclick="checkSpell()">验证</button>
+
+        <div class="checkin-area">
+            <button id="checkinBtn" onclick="checkin()">📅 今日打卡</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('study', this)">📱 背单词</button>
+            <button class="tab-btn" onclick="showTab('words', this)">📚 我的词库</button>
+            <button class="tab-btn" onclick="showTab('add', this)">➕ 添加单词</button>
+            <button class="tab-btn" onclick="showTab('settings', this)">⚙️ 个人设置</button>
+        </div>
+
+        <div id="studyTab" class="tab-content">
+            <div class="settings-bar">
+                <select id="bookSelect" onchange="switchBook()"></select>
+                <select id="orderMode">
+                    <option value="sequential">顺序</option>
+                    <option value="random">乱序</option>
+                </select>
+                <select id="dailyLimit">
+                    <option value="0">无限制</option>
+                    <option value="5">每天5个</option>
+                    <option value="10">每天10个</option>
+                    <option value="20">每天20个</option>
+                    <option value="30">每天30个</option>
+                    <option value="50">每天50个</option>
+                    <option value="100">每天100个</option>
+                    <option value="150">每天150个</option>
+                    <option value="200">每天200个</option>
+                </select>
+                <button onclick="resetStudyQueue()">🔄 重置</button>
+            </div>
+            
+            <div class="card-container">
+                <div id="studyCard" class="study-card">
+                    <div id="cardFront">
+                        <h2 id="currentWord">加载中...</h2>
+                        <button class="speak-btn" onclick="speakWord()">🔊 发音</button>
+                        <p class="hint">👈 左滑没记住 | 右滑记住了 👉</p >
+                    </div>
+                    <div id="cardBack" style="display:none">
+                        <h2 id="wordMeaning"></h2>
+                        <p id="wordExample"></p >
+                        <div id="spellArea" style="display:none">
+                            <input type="text" id="spellInput" placeholder="拼写这个单词" onkeypress="if(event.key==='Enter') checkSpell()">
+                            <button onclick="checkSpell()">验证</button>
+                        </div>
                     </div>
                 </div>
+                <div id="studyStats"></div>
             </div>
-            <div id="studyStats"></div>
         </div>
-    </div>
 
-    <div id="wordsTab" class="tab-content" style="display:none">
-        <div class="book-manage">
-            <h3>我的词书</h3>
-            <div id="booksList"></div>
-            <div class="add-book-simple">
-                <input type="text" id="newBookName" placeholder="新词书名称">
-                <button onclick="createBook()">创建词书</button>
+        <div id="wordsTab" class="tab-content" style="display:none">
+            <div class="book-manage">
+                <h3>我的词书</h3>
+                <div id="booksList"></div>
+                <div class="add-book-simple">
+                    <input type="text" id="newBookName" placeholder="新词书名称">
+                    <button onclick="createBook()">创建词书</button>
+                </div>
+                <div class="import-public-area">
+                    <h3>📥 导入公开词书</h3>
+                    <select id="publicBookSelect"><option>加载中...</option></select>
+                    <select id="importTargetBook"><option>选择目标词书</option></select>
+                    <button onclick="importPublicWordbook()">导入到我的词书</button>
+                </div>
+                <h3>单词列表</h3>
+                <div id="wordList"></div>
             </div>
-            
-            <div class="import-public-area">
-                <h3>📥 导入公开词书</h3>
-                <select id="publicBookSelect"><option>加载中...</option></select>
-                <select id="importTargetBook"><option>选择目标词书</option></select>
-                <button onclick="importPublicWordbook()">导入到我的词书</button>
+        </div>
+
+        <div id="addTab" class="tab-content" style="display:none">
+            <div class="add-word">
+                <select id="bookSelectAdd"></select>
+                <input type="text" id="newWord" placeholder="单词">
+                <input type="text" id="newMeaning" placeholder="释义">
+                <input type="text" id="newCategory" placeholder="分类（可选）">
+                <textarea id="newExample" placeholder="例句（可选）"></textarea>
+                <button onclick="addWord()">添加单词</button>
             </div>
-            
-            <h3>单词列表</h3>
-            <div id="wordList"></div>
+        </div>
+
+        <div id="settingsTab" class="tab-content" style="display:none">
+            <div class="settings-card">
+                <h3>👤 修改用户名</h3>
+                <input type="text" id="newUsername" placeholder="新用户名">
+                <button onclick="updateUsername()" class="save-btn">保存用户名</button>
+                <hr>
+                <h3>🔐 修改密码</h3>
+                <input type="password" id="oldPassword" placeholder="原密码">
+                <input type="password" id="newPassword" placeholder="新密码">
+                <input type="password" id="confirmPassword" placeholder="确认新密码">
+                <button onclick="updatePassword()" class="save-btn">保存密码</button>
+            </div>
         </div>
     </div>
 
-    <div id="addTab" class="tab-content" style="display:none">
-        <div class="add-word">
-            <select id="bookSelectAdd"></select>
-            <input type="text" id="newWord" placeholder="单词">
-            <input type="text" id="newMeaning" placeholder="释义">
-            <input type="text" id="newCategory" placeholder="分类（可选）">
-            <textarea id="newExample" placeholder="例句（可选）"></textarea>
-            <button onclick="addWord()">添加单词</button>
+    <!-- 管理员界面 -->
+    <div id="adminPanel" style="display:none">
+        <div class="admin-header">
+            <h3>🔧 管理后台</h3>
+            <p class="admin-subtitle">欢迎回来，管理员</p >
         </div>
-    </div>
-
-    <div id="settingsTab" class="tab-content" style="display:none">
-        <div class="settings-card">
-            <h3>👤 修改用户名</h3>
-            <input type="text" id="newUsername" placeholder="新用户名">
-            <button onclick="updateUsername()" class="save-btn">保存用户名</button>
-            <hr>
-            <h3>🔐 修改密码</h3>
-            <input type="password" id="oldPassword" placeholder="原密码">
-            <input type="password" id="newPassword" placeholder="新密码">
-            <input type="password" id="confirmPassword" placeholder="确认新密码">
-            <button onclick="updatePassword()" class="save-btn">保存密码</button>
+        <div class="admin-stats">
+            <div class="admin-stat-card" onclick="showAdminUsers()">
+                <div class="admin-stat-icon">👥</div>
+                <div class="admin-stat-title">用户管理</div>
+                <div class="admin-stat-desc">查看所有注册用户</div>
+            </div>
+            <div class="admin-stat-card" onclick="showAdminWordbooks()">
+                <div class="admin-stat-icon">📚</div>
+                <div class="admin-stat-title">公开词书</div>
+                <div class="admin-stat-desc">添加/删除公开词书</div>
+            </div>
+            <div class="admin-stat-card" onclick="showAdminAnnounce()">
+                <div class="admin-stat-icon">📢</div>
+                <div class="admin-stat-title">发布公告</div>
+                <div class="admin-stat-desc">向所有用户发布公告</div>
+            </div>
+            <div class="admin-stat-card" onclick="showAdminSettings()">
+                <div class="admin-stat-icon">⚙️</div>
+                <div class="admin-stat-title">个人设置</div>
+                <div class="admin-stat-desc">修改管理员密码</div>
+            </div>
         </div>
-    </div>
-
-    <div id="adminPanel" style="display:none; margin-top:20px">
-        <div class="admin-bar">
-            <button onclick="showAdminUsers()">👥 用户管理</button>
-            <button onclick="showAdminWordbooks()">📚 管理公开词书</button>
-            <button onclick="showAdminAnnounce()">📢 发布公告</button>
-        </div>
-        <div id="adminContent"></div>
+        <div id="adminContent" class="admin-content"></div>
     </div>
 
     <script src="script.js"></script>

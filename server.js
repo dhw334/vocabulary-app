@@ -10,7 +10,6 @@ const db = new sqlite3.Database('database.db');
 
 // 创建所有表
 db.serialize(() => {
-    // 用户表
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE,
@@ -19,7 +18,6 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
     
-    // 词书表
     db.run(`CREATE TABLE IF NOT EXISTS books (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
@@ -29,7 +27,6 @@ db.serialize(() => {
         FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
     
-    // 单词表（增加间隔重复字段）
     db.run(`CREATE TABLE IF NOT EXISTS user_words (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
@@ -46,7 +43,6 @@ db.serialize(() => {
         FOREIGN KEY(book_id) REFERENCES books(id)
     )`);
     
-    // 学习记录表
     db.run(`CREATE TABLE IF NOT EXISTS study_records (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
@@ -55,14 +51,12 @@ db.serialize(() => {
         studied_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
     
-    // 打卡记录表
     db.run(`CREATE TABLE IF NOT EXISTS user_checkins (
         user_id INTEGER,
         checkin_date DATE,
         FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
     
-    // 公告表
     db.run(`CREATE TABLE IF NOT EXISTS announcements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
@@ -70,7 +64,6 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
     
-    // 公开词书表（管理员添加）
     db.run(`CREATE TABLE IF NOT EXISTS public_wordbooks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
@@ -79,7 +72,6 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
     
-    // 创建默认管理员
     db.get("SELECT * FROM users WHERE username = 'admin'", (err, row) => {
         if (!row) {
             bcrypt.hash('admin123', 10, (err, hash) => {
@@ -177,16 +169,12 @@ app.delete('/api/words/:wordId', (req, res) => {
     });
 });
 
-// 间隔重复：更新复习参数
 app.post('/api/update-review-params', (req, res) => {
     const { wordId, quality } = req.body;
-    
     db.get('SELECT ease_factor, interval_days, review_count FROM user_words WHERE id = ?', [wordId], (err, word) => {
         if(!word) return res.json({ success: false });
-        
         let { ease_factor, interval_days, review_count } = word;
         review_count = (review_count || 0) + 1;
-        
         if(quality === 0) {
             interval_days = 0;
             ease_factor = Math.max(1.3, ease_factor - 0.2);
@@ -196,21 +184,13 @@ app.post('/api/update-review-params', (req, res) => {
             else if(review_count === 3) interval_days = 7;
             else if(review_count === 4) interval_days = 14;
             else interval_days = Math.round(interval_days * ease_factor);
-            
             interval_days = Math.min(interval_days, 180);
             ease_factor = ease_factor + 0.1;
         }
-        
         const next_review = new Date();
         next_review.setDate(next_review.getDate() + interval_days);
         const next_review_str = next_review.toISOString().split('T')[0];
-        
-        db.run(`UPDATE user_words SET 
-            ease_factor = ?, 
-            interval_days = ?, 
-            next_review = ?,
-            review_count = ?
-        WHERE id = ?`, [ease_factor, interval_days, next_review_str, review_count, wordId], () => {
+        db.run(`UPDATE user_words SET ease_factor = ?, interval_days = ?, next_review = ?, review_count = ? WHERE id = ?`, [ease_factor, interval_days, next_review_str, review_count, wordId], () => {
             res.json({ success: true });
         });
     });
@@ -296,7 +276,7 @@ app.get('/api/admin/users', (req, res) => {
     });
 });
 
-// ========== 公开词书（管理员管理，用户导入） ==========
+// ========== 公开词书 ==========
 app.get('/api/public-wordbooks', (req, res) => {
     db.all('SELECT * FROM public_wordbooks ORDER BY id DESC', (err, books) => {
         res.json(books || []);
@@ -306,11 +286,10 @@ app.get('/api/public-wordbooks', (req, res) => {
 app.post('/api/admin/public-wordbook', (req, res) => {
     const { name, description, words } = req.body;
     if(!name || !words) return res.json({ success: false, message: '词书名和单词列表不能为空' });
-    db.run('INSERT INTO public_wordbooks (name, description, words) VALUES (?, ?, ?)',
-        [name, description || '', JSON.stringify(words)], function(err) {
-            if(err) return res.json({ success: false, message: err.message });
-            res.json({ success: true, id: this.lastID });
-        });
+    db.run('INSERT INTO public_wordbooks (name, description, words) VALUES (?, ?, ?)', [name, description || '', JSON.stringify(words)], function(err) {
+        if(err) return res.json({ success: false, message: err.message });
+        res.json({ success: true, id: this.lastID });
+    });
 });
 
 app.delete('/api/admin/public-wordbook/:id', (req, res) => {
