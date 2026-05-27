@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>背单词 - 登录</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 350px; text-align: center; }
+        h1 { margin-bottom: 30px; color: #333; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 12px; margin: 10px 0; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        button:hover { opacity: 0.9; }
+        .switch-btn { background: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 背单词</h1>
+        <div id="loginForm">
+            <input type="text" id="loginUsername" placeholder="用户名">
+            <input type="password" id="loginPassword" placeholder="密码">
+            <button onclick="login()">登录</button>
+            <button class="switch-btn" onclick="showRegister()">注册</button>
+        </div>
+        <div id="registerForm" style="display:none">
+            <input type="text" id="regUsername" placeholder="用户名">
+            <input type="password" id="regPassword" placeholder="密码">
+            <button onclick="register()">注册</button>
+            <button class="switch-btn" onclick="showLogin()">返回登录</button>
+        </div>
+    </div>
+    <script>
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password})
+            });
+            const data = await res.json();
+            if(data.success) {
+                localStorage.setItem('userId', data.userId);
+                localStorage.setItem('username', data.username);
+                localStorage.setItem('isAdmin', data.isAdmin);
+                window.location.href = '/home.html';
+            } else alert(data.message);
+        }
+        async function register() {
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password})
+            });
+            const data = await res.json();
+            if(data.success) {
+                alert('注册成功，请登录');
+                showLogin();
+            } else alert(data.message);
+        }
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
