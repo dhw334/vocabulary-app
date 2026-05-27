@@ -101,7 +101,7 @@ app.post('/api/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     db.run('INSERT INTO users (username, password, is_admin) VALUES (?, ?, 0)', [username, hashedPassword], function(err) {
         if (err) return res.json({ success: false, message: '用户名已存在' });
-        db.run('INSERT INTO books (user_id, name, description) VALUES (?, ?, ?)', [this.lastID, '默认词书', '系统自动创建']);
+        db.run('INSERT INTO books (user_id, name, description) VALUES (?, ?, ?)', [this.lastID, '我的生词本', '手动添加的单词']);
         res.json({ success: true, userId: this.lastID });
     });
 });
@@ -312,23 +312,22 @@ app.delete('/api/admin/public-wordbook/:id', (req, res) => {
     });
 });
 
-app.post('/api/import-public-wordbook', (req, res) => {
-    const { userId, publicBookId, targetBookId } = req.body;
+app.post('/api/select-public-wordbook', (req, res) => {
+    const { userId, publicBookId } = req.body;
+    // 获取公开词书的单词
     db.get('SELECT words FROM public_wordbooks WHERE id = ?', [publicBookId], (err, book) => {
         if(!book) return res.json({ success: false, message: '词书不存在' });
+        
+        // 获取用户的"当前词书"设置
         const words = JSON.parse(book.words);
-        const stmt = db.prepare('INSERT INTO user_words (user_id, book_id, word, meaning, example, category) VALUES (?, ?, ?, ?, ?, ?)');
-        let count = 0;
-        words.forEach(w => {
-            stmt.run(userId, targetBookId, w.word, w.meaning, w.example || '', w.category || '公开词库');
-            count++;
+        // 创建或更新用户当前使用的词书
+        db.run('INSERT OR REPLACE INTO user_current_book (user_id, book_data) VALUES (?, ?)', [userId, JSON.stringify(words)], (err) => {
+            if(err) return res.json({ success: false });
+            res.json({ success: true, count: words.length });
         });
-        stmt.finalize();
-        res.json({ success: true, count });
     });
 });
 
-// 启动服务器
 const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0', () => {
     console.log(`服务器已启动！端口: ${port}`);
